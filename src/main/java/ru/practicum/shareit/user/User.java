@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * TODO Sprint add-controllers.
+ * Модель пользователя(user)
  */
 @Getter
 @Setter

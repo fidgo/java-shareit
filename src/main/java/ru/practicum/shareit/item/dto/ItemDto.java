@@ -11,7 +11,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 /**
- * TODO Sprint add-controllers.
+ * DTO предмета входной и выходной, при создании и изменении
  */
 @Getter
 @Setter
