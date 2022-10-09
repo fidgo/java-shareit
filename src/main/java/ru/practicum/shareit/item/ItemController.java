@@ -12,7 +12,8 @@ import ru.practicum.shareit.item.interfaces.ItemService;
 import java.util.List;
 
 /**
- * TODO Sprint add-controllers.
+ * Контроллер для управления предметами(items) — создания, редактирования, удаления, поиска и просмотра
+ * предметов пользователей.
  */
 @RestController
 @RequestMapping("/items")

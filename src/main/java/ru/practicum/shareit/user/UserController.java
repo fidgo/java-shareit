@@ -11,7 +11,7 @@ import ru.practicum.shareit.user.interfaces.UserService;
 import java.util.List;
 
 /**
- * TODO Sprint add-controllers.
+ * Контроллер для управления пользователями(users) — создания, редактирования, удаления и просмотра пользователей.
  */
 @RestController
 @RequestMapping(path = "/users")

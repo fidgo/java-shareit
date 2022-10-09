@@ -7,11 +7,12 @@ import ru.practicum.shareit.user.interfaces.UserDao;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 @RequiredArgsConstructor
 public class UserInMemDaoImpl implements UserDao {
-    private final HashMap<Long, User> users = new HashMap<>();
+    private final Map<Long, User> users = new HashMap<>();
 
     private long idGenerator = 0L;
 

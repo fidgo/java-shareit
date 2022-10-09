@@ -7,10 +7,11 @@ import ru.practicum.shareit.item.model.Item;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class ItemInMemDaoImpl implements ItemDao {
-    private final HashMap<Long, Item> items = new HashMap<>();
+    private final Map<Long, Item> items = new HashMap<>();
     private long idGenerator = 0L;
 
     @Override

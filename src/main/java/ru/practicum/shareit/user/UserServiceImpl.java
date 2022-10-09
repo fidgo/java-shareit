@@ -9,12 +9,13 @@ import ru.practicum.shareit.user.interfaces.UserService;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserDao userDao;
-    private final HashSet<String> uniqEmails = new HashSet<>();
+    private final Set<String> uniqEmails = new HashSet<>();
 
     @Override
     public UserDto create(UserDto userDto) {
