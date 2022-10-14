@@ -19,6 +19,35 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleStatusElemException(final StatusElemException e) {
+        log.info("400 {}", e.getMessage(), e);
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleInvalidArgumentException(final InvalidArgumentException e) {
+        log.info("400 {}", e.getMessage(), e);
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleAlreadySetException(final AlreadySetStatusException e) {
+        log.info("400 {}", e.getMessage(), e);
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleInvalidAccessException(final InvalidAccessException e) {
+        log.info("404 {}", e.getMessage(), e);
+        return new ErrorResponse(e.getMessage());
+    }
+
+
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleAlreadyExistException(final AlreadyExistException e) {
         log.info("409 {}", e.getMessage(), e);
@@ -35,10 +64,11 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleInvalidAccessException(final InvalidAccessException e) {
+    public ErrorResponse handleInvalidBookerExcception(final InvalidBookerExcception e) {
         log.info("404 {}", e.getMessage(), e);
         return new ErrorResponse(e.getMessage());
     }
+
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
