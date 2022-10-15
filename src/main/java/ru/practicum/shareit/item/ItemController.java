@@ -6,7 +6,9 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.Create;
 import ru.practicum.shareit.Update;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemInfoDto;
 import ru.practicum.shareit.item.interfaces.ItemService;
 
 import java.util.List;
@@ -23,17 +25,17 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping
-    List<ItemDto> getAll(@RequestHeader("X-Sharer-User-Id") long userId) {
+    List<ItemInfoDto> getAll(@RequestHeader("X-Sharer-User-Id") long userId) {
         log.info("Controller = {}, UserId = {} , get all Items", this.getClass().getSimpleName(), userId);
-        List<ItemDto> dto = itemService.getAllItemsByUserID(userId);
+        List<ItemInfoDto> dto = itemService.getAllItemsByUserID(userId);
         return dto;
     }
 
     @GetMapping("/{itemId}")
-    ItemDto get(@RequestHeader("X-Sharer-User-Id") long userId,
-                @PathVariable long itemId) {
+    ItemInfoDto get(@RequestHeader("X-Sharer-User-Id") long userId,
+                    @PathVariable long itemId) {
         log.info("Controller = {}, UserId = {} ,get ItemId = {}", this.getClass().getSimpleName(), userId, itemId);
-        ItemDto dto = itemService.get(itemId);
+        ItemInfoDto dto = itemService.get(userId, itemId);
         return dto;
     }
 
@@ -50,6 +52,15 @@ public class ItemController {
                    @Validated({Create.class}) @RequestBody ItemDto itemDto) {
         log.info("Controller = {}, UserId = {} ,Create Item = {}", this.getClass().getSimpleName(), userId, itemDto);
         ItemDto dto = itemService.create(userId, itemDto);
+        return dto;
+    }
+
+    @PostMapping("/{itemId}/comment")
+    CommentDto createComment(@RequestHeader("X-Sharer-User-Id") long userId, @PathVariable long itemId,
+                             @Validated({Create.class}) @RequestBody CommentDto commentDto) {
+        log.info("Controller = {}, UserId = {} ,Create comment = {}", this.getClass().getSimpleName(), userId,
+                commentDto);
+        CommentDto dto = itemService.createComment(userId, itemId, commentDto);
         return dto;
     }
 

@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import ru.practicum.shareit.Create;
-import ru.practicum.shareit.request.ItemRequest;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -28,5 +27,4 @@ public class ItemDto {
     private String description;
     @NotNull(groups = {Create.class}, message = "available не null")
     private Boolean available;
-    private ItemRequest itemRequest;
 }
