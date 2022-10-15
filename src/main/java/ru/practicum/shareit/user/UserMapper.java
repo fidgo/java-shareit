@@ -1,5 +1,8 @@
 package ru.practicum.shareit.user;
 
+import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingUpdateDto;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +28,22 @@ public class UserMapper {
                 userDto.getId(),
                 userDto.getName(),
                 userDto.getEmail()
+        );
+    }
+
+    public static BookingDto.UserBookingDto toUserBookigDto(User booker) {
+        return new BookingDto.UserBookingDto(
+                booker.getId(),
+                booker.getName(),
+                booker.getEmail()
+        );
+    }
+
+    public static BookingUpdateDto.UserBookingUpdateDto toUserBookigUpdateDto(User booker) {
+        return new BookingUpdateDto.UserBookingUpdateDto(
+                booker.getId(),
+                booker.getName(),
+                booker.getEmail()
         );
     }
 }

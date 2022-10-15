@@ -5,8 +5,6 @@ import lombok.*;
 import ru.practicum.shareit.Create;
 import ru.practicum.shareit.booking.BookingState;
 import ru.practicum.shareit.booking.CreateOutput;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.User;
 
 import javax.validation.constraints.Future;
 import javax.validation.constraints.FutureOrPresent;
@@ -31,6 +29,33 @@ public class BookingDto {
     @Future(groups = {Create.class})
     private LocalDateTime end;
     private BookingState status;
-    private User booker;
-    private Item item;
+    private UserBookingDto booker;
+    private ItemBookingDto item;
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @ToString
+    public static class ItemBookingDto {
+        private Long id;
+        private String name;
+        private String description;
+        private Boolean available;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @ToString
+    public static class UserBookingDto {
+        private Long id;
+        private String name;
+        private String email;
+    }
+
 }
+
+
+
+
+

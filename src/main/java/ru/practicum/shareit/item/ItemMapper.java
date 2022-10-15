@@ -1,6 +1,8 @@
 package ru.practicum.shareit.item;
 
 import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingUpdateDto;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemInfoDto;
@@ -87,6 +89,24 @@ public class ItemMapper {
                 commentDB.getText(),
                 commentDB.getAuthor().getName(),
                 commentDB.getCreated()
+        );
+    }
+
+    public static BookingDto.ItemBookingDto toItemBookingDto(Item item) {
+        return new BookingDto.ItemBookingDto(
+                item.getId(),
+                item.getName(),
+                item.getDescription(),
+                item.getAvailable()
+        );
+    }
+
+    public static BookingUpdateDto.ItemBookingUpdateDto toItemBookingUpdateDto(Item item) {
+        return new BookingUpdateDto.ItemBookingUpdateDto(
+                item.getId(),
+                item.getName(),
+                item.getDescription(),
+                item.getAvailable()
         );
     }
 }

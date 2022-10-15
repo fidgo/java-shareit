@@ -3,8 +3,6 @@ package ru.practicum.shareit.booking.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import ru.practicum.shareit.booking.BookingState;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.User;
 
 import java.time.LocalDateTime;
 
@@ -17,8 +15,30 @@ import java.time.LocalDateTime;
 public class BookingUpdateDto {
     private Long id;
     private BookingState status;
-    private User booker;
-    private Item item;
+    private UserBookingUpdateDto booker;
+    private ItemBookingUpdateDto item;
     private LocalDateTime start;
     private LocalDateTime end;
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @ToString
+    public static class ItemBookingUpdateDto {
+        private Long id;
+        private String name;
+        private String description;
+        private Boolean available;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @ToString
+    public static class UserBookingUpdateDto {
+        private Long id;
+        private String name;
+        private String email;
+    }
+
 }
