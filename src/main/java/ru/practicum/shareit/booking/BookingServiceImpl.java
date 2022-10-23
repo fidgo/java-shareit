@@ -58,8 +58,8 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new NoSuchElemException("Нет такого бронирования"));
 
         if (booking.getItem().getOwner().getId() != userId) {
-            throw new InvalidBookerExcception("Подтверждение или отклонение запроса на бронирование может исполнить только" +
-                    " владелец вещи");
+            throw new InvalidBookerExcception("Подтверждение или отклонение запроса на бронирование может исполнить" +
+                    " только владелец вещи");
         }
 
         BookingState newBookingState = approved ? BookingState.APPROVED : BookingState.REJECTED;

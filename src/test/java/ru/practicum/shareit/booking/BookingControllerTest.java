@@ -17,11 +17,14 @@ import ru.practicum.shareit.PageRequestFrom;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingUpdateDto;
 import ru.practicum.shareit.booking.interfaces.BookingService;
+import ru.practicum.shareit.error.InvalidArgumentException;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
@@ -94,6 +97,17 @@ public class BookingControllerTest {
         verify(bookingService, times(1))
                 .getAllByBookerId(eq(1L), any(), eq(pageRequest));
     }
+
+    @Test
+    void getAllByBookerIdIllegalArgumentEx() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/bookings").header("X-Sharer-User-Id", "1")
+                        .param("state", "invalid_state"))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof InvalidArgumentException))
+                .andExpect(result -> assertEquals("Unknown state: UNSUPPORTED_STATUS",
+                        result.getResolvedException().getMessage()));
+    }
+
 
     @Test
     void getAllByOwnerId() throws Exception {

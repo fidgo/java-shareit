@@ -11,6 +11,7 @@ import ru.practicum.shareit.PageRequestFrom;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingState;
 import ru.practicum.shareit.booking.interfaces.BookingRepository;
+import ru.practicum.shareit.error.InvalidAccessException;
 import ru.practicum.shareit.error.NoSuchElemException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -23,6 +24,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.interfaces.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -129,7 +131,6 @@ public class ItemServiceTest {
 
     @Test
     void update() {
-
         item1.setDescription("ball");
         item1Dto.setDescription("ball");
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(user1));
@@ -147,6 +148,53 @@ public class ItemServiceTest {
         assertEquals(itemFrom.getDescription(), item1.getDescription());
         assertEquals(itemFrom.getAvailable(), item1.getAvailable());
         assertEquals(itemFrom.getOwner().getId(), item1.getOwner().getId());
+    }
+
+    @Test
+    void updateInvalidAccessEx() {
+        item1.setDescription("ball");
+        item1Dto.setDescription("ball");
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user1));
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item1));
+
+        InvalidAccessException ex = assertThrows(InvalidAccessException.class,
+                () -> {
+                    itemService.update(4L, 1L, item1Dto);
+                });
+        assertEquals("Такой пользователь не может модифицировать предмет", ex.getMessage());
+        verify(userRepository, Mockito.times(1)).findById(anyLong());
+        verify(itemRepository, Mockito.times(1)).findById(anyLong());
+    }
+
+    @Test
+    void updateNoSuchUser() {
+        item1.setDescription("ball");
+        item1Dto.setDescription("ball");
+        when(userRepository.findById(eq(1L))).thenReturn(Optional.of(user1));
+
+        NoSuchElemException ex = assertThrows(NoSuchElemException.class,
+                () -> {
+                    itemService.update(4L, 1L, item1Dto);
+                });
+        assertEquals("Нет такого пользователя", ex.getMessage());
+        verify(userRepository, Mockito.times(1)).findById(anyLong());
+
+    }
+
+    @Test
+    void updateNoSuchItem() {
+        item1.setDescription("ball");
+        item1Dto.setDescription("ball");
+        when(userRepository.findById(eq(1L))).thenReturn(Optional.of(user1));
+        when(itemRepository.findById(eq(1L))).thenReturn(Optional.of(item1));
+
+        NoSuchElemException ex = assertThrows(NoSuchElemException.class,
+                () -> {
+                    itemService.update(1L, 4L, item1Dto);
+                });
+        assertEquals("Нет такого предмета", ex.getMessage());
+        verify(userRepository, Mockito.times(1)).findById(anyLong());
+        verify(itemRepository, Mockito.times(1)).findById(anyLong());
     }
 
     @Test
@@ -239,5 +287,38 @@ public class ItemServiceTest {
         assertEquals(dtoFrom.getId(), commentDto1.getId());
         assertEquals(dtoFrom.getText(), commentDto1.getText());
         assertEquals(dtoFrom.getAuthorName(), commentDto1.getAuthorName());
+    }
+
+    @Test
+    void itemMapperToItemInfoDto() {
+        ItemInfoDto.BookingInfoDto lastBooking = new ItemInfoDto.BookingInfoDto(1L, 1L);
+        ItemInfoDto.BookingInfoDto nextBooking = new ItemInfoDto.BookingInfoDto(2L, 2L);
+        CommentDto commentDto = new CommentDto(1L, "testText", "user1", LocalDateTime.now());
+        ItemInfoDto expected = new ItemInfoDto(1L, "car", "very fast", true,
+                lastBooking,
+                nextBooking,
+                List.of(commentDto));
+        Comment comment = new Comment(1L, "testText", user1, item1, commentDto.getCreated());
+        Booking lsBooking = new Booking(1L, null, null, null,
+                new User(1L, "dsds", "dsd@mail.ru"), BookingState.WAITING);
+        Booking nxBooking = new Booking(2L, null, null, null,
+                new User(2L, "dsds", "dsd@mail.ru"), BookingState.WAITING);
+
+        ItemInfoDto response = ItemMapper.toItemInfoDto(item1, List.of(lsBooking, nxBooking),
+                List.of(comment));
+
+        assertNotNull(response);
+        assertEquals(expected.getId(), response.getId());
+        assertEquals(expected.getAvailable(), response.getAvailable());
+        assertEquals(expected.getName(), response.getName());
+        assertEquals(expected.getDescription(), response.getDescription());
+        assertEquals(expected.getLastBooking().getId(), response.getLastBooking().getId());
+        assertEquals(expected.getLastBooking().getBookerId(), response.getLastBooking().getBookerId());
+        assertEquals(expected.getNextBooking().getId(), response.getNextBooking().getId());
+        assertEquals(expected.getNextBooking().getBookerId(), response.getNextBooking().getBookerId());
+        assertEquals(expected.getComments().get(0).getAuthorName(), response.getComments().get(0).getAuthorName());
+        assertEquals(expected.getComments().get(0).getId(), response.getComments().get(0).getId());
+        assertEquals(expected.getComments().get(0).getText(), response.getComments().get(0).getText());
+        assertEquals(expected.getComments().get(0).getCreated(), response.getComments().get(0).getCreated());
     }
 }

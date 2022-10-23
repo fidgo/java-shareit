@@ -46,15 +46,6 @@ public class ErrorHandler {
         return new ErrorResponse(e.getMessage());
     }
 
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponse handleAlreadyExistException(final AlreadyExistException e) {
-        log.info("409 {}", e.getMessage(), e);
-        return new ErrorResponse(e.getMessage());
-    }
-
-
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNoSuchElemException(final NoSuchElemException e) {

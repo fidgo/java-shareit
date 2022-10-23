@@ -11,7 +11,7 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingUpdateDto;
 import ru.practicum.shareit.booking.interfaces.BookingRepository;
 import ru.practicum.shareit.booking.interfaces.BookingService;
-import ru.practicum.shareit.error.NoSuchElemException;
+import ru.practicum.shareit.error.*;
 import ru.practicum.shareit.item.interfaces.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
@@ -87,6 +87,60 @@ public class BookingServiceTest {
     }
 
     @Test
+    void createNoSuchItem() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user1));
+        when(itemRepository.findById(eq(4L))).thenReturn(Optional.of(item1));
+
+        NoSuchElemException ex = assertThrows(NoSuchElemException.class,
+                () -> {
+                    bookingService.create(5L, booking1Dto);
+                });
+        verify(userRepository, Mockito.times(1)).findById(anyLong());
+        verify(itemRepository, Mockito.times(1)).findById(anyLong());
+    }
+
+    @Test
+    void createNoSuchUser() {
+        when(userRepository.findById(eq(1L))).thenReturn(Optional.of(user1));
+        NoSuchElemException ex = assertThrows(NoSuchElemException.class,
+                () -> {
+                    bookingService.create(5L, booking1Dto);
+                });
+        verify(userRepository, Mockito.times(1)).findById(anyLong());
+    }
+
+    @Test
+    void createInvalidAccessEx() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user1));
+        item1.setOwner(user1);
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item1));
+
+        InvalidAccessException ex = assertThrows(InvalidAccessException.class,
+                () -> {
+                    bookingService.create(1L, booking1Dto);
+                });
+        assertEquals("Нельзя забронировать свой предмет", ex.getMessage());
+        verify(userRepository, Mockito.times(1)).findById(anyLong());
+        verify(itemRepository, Mockito.times(1)).findById(anyLong());
+    }
+
+    @Test
+    void createStatusElemExc() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user1));
+        item1.setAvailable(false);
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item1));
+
+        StatusElemException ex = assertThrows(StatusElemException.class,
+                () -> {
+                    bookingService.create(1L, booking1Dto);
+                });
+        assertEquals("Предмет недоступен", ex.getMessage());
+        verify(userRepository, Mockito.times(1)).findById(anyLong());
+        verify(itemRepository, Mockito.times(1)).findById(anyLong());
+    }
+
+
+    @Test
     void updateState() {
         Booking booking1appr = new Booking(1L, null, null, item1, user1, BookingState.APPROVED);
         BookingDto booking1DtoApr = new BookingDto(1L, 1L, null, null, BookingState.APPROVED,
@@ -119,8 +173,41 @@ public class BookingServiceTest {
         assertEquals(bookingUpdateDtoAppr.getItem().getId(), bookingUpdateDto.getItem().getId());
         assertEquals(bookingUpdateDtoAppr.getItem().getAvailable(), bookingUpdateDto.getItem().getAvailable());
         assertEquals(bookingUpdateDtoAppr.getItem().getDescription(), bookingUpdateDto.getItem().getDescription());
-
     }
+
+    @Test
+    void updateStateInvalidBookerEx() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user1));
+        when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking1));
+
+        InvalidBookerExcception ex = assertThrows(InvalidBookerExcception.class,
+                () -> {
+                    bookingService.updateState(2L, 1L, true);
+                });
+        assertEquals("Подтверждение или отклонение запроса на бронирование может исполнить" +
+                " только владелец вещи", ex.getMessage());
+
+        verify(userRepository, Mockito.times(1)).findById(anyLong());
+        verify(bookingRepository, Mockito.times(1)).findById(anyLong());
+    }
+
+
+    @Test
+    void updateStateAlreadySetStatusEx() {
+        booking1.setStatus(BookingState.APPROVED);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user1));
+        when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking1));
+
+        AlreadySetStatusException ex = assertThrows(AlreadySetStatusException.class,
+                () -> {
+                    bookingService.updateState(1L, 1L, true);
+                });
+        assertEquals("Уже APPROVED установлен", ex.getMessage());
+
+        verify(userRepository, Mockito.times(1)).findById(anyLong());
+        verify(bookingRepository, Mockito.times(1)).findById(anyLong());
+    }
+
 
     @Test
     void getById() {

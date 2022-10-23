@@ -123,4 +123,45 @@ public class ItemRequestServiceTest {
         assertEquals(item1RequestResponsesDto.getDescription(), fromRep.getDescription());
 
     }
+
+    @Test
+    void itemRequestMapperItemRequestResponsesDto() {
+        item1.setRequest(user2);
+        ItemRequestResponsesDto.ItemReqResponses expResponse = new ItemRequestResponsesDto.ItemReqResponses();
+        expResponse.setId(item1.getId());
+        expResponse.setName(item1.getName());
+        expResponse.setDescription(item1.getDescription());
+        expResponse.setAvailable(item1.getAvailable());
+        expResponse.setRequestId(item1.getRequest().getId());
+
+        ItemRequestResponsesDto.ItemReqResponses response = ItemRequestMapper.toItemReqResponses(item1);
+        assertNotNull(response);
+        assertEquals(expResponse.getId(), response.getId());
+        assertEquals(expResponse.getName(), response.getName());
+        assertEquals(expResponse.getDescription(), response.getDescription());
+        assertEquals(expResponse.getRequestId(), response.getRequestId());
+
+        List<ItemRequestResponsesDto.ItemReqResponses> responses =
+                ItemRequestMapper.toItemRequestResponse(List.of(item1));
+        assertNotNull(responses);
+        assertEquals(1, responses.size());
+        response = responses.get(0);
+        assertEquals(expResponse.getId(), response.getId());
+        assertEquals(expResponse.getName(), response.getName());
+        assertEquals(expResponse.getDescription(), response.getDescription());
+        assertEquals(expResponse.getRequestId(), response.getRequestId());
+    }
+
+    @Test
+    void itemRequestMapperToItemRequests() {
+        ItemRequestDto expItemReqDto = ItemRequestMapper.toItemRequestDto(item1Request);
+        List<ItemRequestDto> itemRequestDtos = ItemRequestMapper.toItemRequests(List.of(item1Request));
+        assertNotNull(itemRequestDtos);
+        assertEquals(1, itemRequestDtos.size());
+        ItemRequestDto response = itemRequestDtos.get(0);
+
+        assertEquals(response.getId(), expItemReqDto.getId());
+        assertEquals(response.getCreated(), expItemReqDto.getCreated());
+        assertEquals(response.getDescription(), expItemReqDto.getDescription());
+    }
 }

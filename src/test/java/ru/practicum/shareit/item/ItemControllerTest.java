@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.practicum.shareit.PageRequestFrom;
+import ru.practicum.shareit.error.StatusElemException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemInfoDto;
@@ -23,6 +24,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -150,6 +153,36 @@ public class ItemControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().json("{\"id\":1,\"text\":\"nice thing!\",\"authorName\":\"clark\"" +
                         ",\"created\":\"2022-10-12T15:16:00\"}"));
+
+        verify(itemService, times(1))
+                .createComment(anyLong(), anyLong(), any(CommentDto.class));
+    }
+
+    @Test
+    void createCommentStatusElemEx() throws Exception {
+        LocalDateTime time1 = LocalDateTime.of(2022, 10, 12, 15, 16);
+
+        when(itemService.createComment(anyLong(), anyLong(), any())).thenThrow(new StatusElemException("error"));
+
+        Map<String, String> body = new HashMap<>();
+        body.put("id", "1");
+        body.put("text", "nice thing!");
+        body.put("authorName", "clark");
+        body.put("available", "true");
+        body.put("created", time1.toString());
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/items/1/comment")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body))
+                        .header("X-Sharer-User-Id", "1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    assertTrue(result.getResolvedException() instanceof StatusElemException);
+                })
+                .andExpect(result -> {
+                    assertEquals("error", result.getResolvedException().getMessage());
+                });
+
 
         verify(itemService, times(1))
                 .createComment(anyLong(), anyLong(), any(CommentDto.class));

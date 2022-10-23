@@ -10,12 +10,14 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import ru.practicum.shareit.user.interfaces.UserService;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -79,6 +81,22 @@ public class UserControllerTest {
                 .andExpect(content().json("{\"id\":1,\"name\":\"user1\",\"email\":\"user1@mail.ru\"}"));
 
         verify(userService, times(1)).create(any(UserDto.class));
+    }
+
+    @Test
+    void createWrongEmailUserExepValid() throws Exception {
+        UserDto user1Dto = new UserDto(1L, "user1", "user1@mail.ru");
+        Map<String, String> body = new HashMap<>();
+        body.put("id", "1");
+        body.put("name", "user1");
+        body.put("email", "use");
+
+        mockMvc.perform(post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result ->
+                        assertTrue(result.getResolvedException() instanceof MethodArgumentNotValidException));
     }
 
     @Test
