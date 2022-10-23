@@ -2,15 +2,20 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.Create;
+import ru.practicum.shareit.PageRequestFrom;
 import ru.practicum.shareit.Update;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemInfoDto;
 import ru.practicum.shareit.item.interfaces.ItemService;
 
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 /**
@@ -25,9 +30,15 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping
-    List<ItemInfoDto> getAll(@RequestHeader("X-Sharer-User-Id") long userId) {
-        log.info("Controller = {}, UserId = {} , get all Items", this.getClass().getSimpleName(), userId);
-        List<ItemInfoDto> dto = itemService.getAllItemsByUserID(userId);
+    List<ItemInfoDto> getAll(@RequestHeader("X-Sharer-User-Id") long userId,
+                             @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                             @Positive @RequestParam(defaultValue = "10") Integer size
+    ) {
+        log.info("Controller = {}, UserId = {} , get all Items from = {} and size = {}",
+                this.getClass().getSimpleName(), userId, from, size);
+
+        PageRequest pageRequest = new PageRequestFrom(size, from, Sort.unsorted());
+        List<ItemInfoDto> dto = itemService.getAllItemsByUserID(userId, pageRequest);
         return dto;
     }
 
@@ -41,9 +52,14 @@ public class ItemController {
 
     @GetMapping("/search")
     List<ItemDto> search(@RequestHeader("X-Sharer-User-Id") long userId,
+                         @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                         @Positive @RequestParam(defaultValue = "10") Integer size,
                          @RequestParam(required = false) String text) {
-        log.info("Controller = {}, UserId = {} ,get ItemId with text {}", this.getClass().getSimpleName(), userId, text);
-        List<ItemDto> dtos = itemService.search(text);
+        log.info("Controller = {}, UserId = {} ,get ItemId with text {} from = {} and size = {}",
+                this.getClass().getSimpleName(), userId, text, from, size);
+
+        PageRequest pageRequest = new PageRequestFrom(size, from, Sort.unsorted());
+        List<ItemDto> dtos = itemService.search(text, pageRequest);
         return dtos;
     }
 

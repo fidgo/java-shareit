@@ -1,6 +1,8 @@
 package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -14,9 +16,9 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.interfaces.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -95,7 +97,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public List<BookingUpdateDto> getAllByBookerId(long userId, BookingSearchState bookingSearchState) {
+    public List<BookingUpdateDto> getAllByBookerId(long userId, BookingSearchState bookingSearchState,
+                                                   PageRequest pageRequest) {
         User userById = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElemException("Нет такого пользователя"));
         boolean isValidState = isBookingSearchStateValid(bookingSearchState);
@@ -103,14 +106,16 @@ public class BookingServiceImpl implements BookingService {
             throw new NoSuchElemException("Такой статус брони не поддерживается");
         }
 
-        List<Booking> bookings = getUsersBookingsByStateFromBooker(userId, bookingSearchState);
+        Page<Booking> bookingPage = getUsersBookingsByStateFromBookerWithPage(userId, bookingSearchState, pageRequest);
 
+        List<Booking> bookings = bookingPage.stream().collect(Collectors.toList());
         return BookingMapper.bookingUpdateDtoList(bookings);
     }
 
     @Override
     @Transactional
-    public List<BookingUpdateDto> getAllByOwnerId(long userId, BookingSearchState bookingSearchState) {
+    public List<BookingUpdateDto> getAllByOwnerId(long userId, BookingSearchState bookingSearchState,
+                                                  PageRequest pageRequest) {
         User owner = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElemException("Нет такого пользователя"));
         boolean isValidState = isBookingSearchStateValid(bookingSearchState);
@@ -121,35 +126,36 @@ public class BookingServiceImpl implements BookingService {
             throw new NoSuchElemException("У владельца " + userId + " нет ни одного предмета");
         }
 
-        List<Booking> bookings = getUsersBookingsByStateFromOwner(userId, bookingSearchState);
+        Page<Booking> bookingPage = getUsersBookingsByStateFromOwner(userId, bookingSearchState, pageRequest);
+        List<Booking> bookings = bookingPage.stream().collect(Collectors.toList());
         return BookingMapper.bookingUpdateDtoList(bookings);
     }
 
-    private List<Booking> getUsersBookingsByStateFromOwner(long userId, BookingSearchState bookingSearchState) {
-        List<Booking> bookings = new ArrayList<>();
+    private Page<Booking> getUsersBookingsByStateFromOwner(long userId, BookingSearchState bookingSearchState,
+                                                           PageRequest pageRequest) {
+        Page<Booking> bookings = null;
         switch (bookingSearchState) {
             case ALL:
-                bookings = bookingRepository.findAllByItem_Owner_IdOrderByStartDesc(userId);
+                bookings = bookingRepository.findAllByItem_Owner_Id(userId, pageRequest);
                 break;
             case APPROVED:
             case WAITING:
             case REJECTED:
                 BookingState bookingState = convertBookingSearchStateToBookingState(bookingSearchState);
                 bookings =
-                        bookingRepository.findAllByItem_Owner_IdAndStatusIsOrderByStartDesc(userId, bookingState);
+                        bookingRepository.findAllByItem_Owner_IdAndStatusIs(userId, bookingState, pageRequest);
                 break;
             case FUTURE:
                 bookings =
-                        bookingRepository.findAllByItem_Owner_IdAndStartAfterOrderByStartDesc(userId,
-                                LocalDateTime.now());
+                        bookingRepository.findAllByItem_Owner_IdAndStartAfter(userId, LocalDateTime.now(), pageRequest);
                 break;
             case PAST:
                 bookings =
-                        bookingRepository.findAllByItem_Owner_IdAndEndBeforeOrderByStartDesc(userId,
-                                LocalDateTime.now());
+                        bookingRepository.findAllByItem_Owner_IdAndEndBefore(userId,
+                                LocalDateTime.now(), pageRequest);
                 break;
             case CURRENT:
-                bookings = bookingRepository.findCurrentBookingFromOwner(userId, LocalDateTime.now());
+                bookings = bookingRepository.findCurrentBookingFromOwner(userId, LocalDateTime.now(), pageRequest);
                 break;
         }
         return bookings;
@@ -169,33 +175,36 @@ public class BookingServiceImpl implements BookingService {
                 || bookingSearchState == BookingSearchState.REJECTED;
     }
 
-    private List<Booking> getUsersBookingsByStateFromBooker(long userId, BookingSearchState bookingSearchState) {
-        List<Booking> bookings = new ArrayList<>();
+
+    private Page<Booking> getUsersBookingsByStateFromBookerWithPage(long userId, BookingSearchState bookingSearchState,
+                                                                    PageRequest pageRequest) {
+        Page<Booking> bookings = null;
         switch (bookingSearchState) {
             case ALL:
-                bookings = bookingRepository.findAllByBooker_IdOrderByStartDesc(userId);
+                bookings = bookingRepository.findAllByBooker_Id(userId, pageRequest);
                 break;
             case APPROVED:
             case WAITING:
             case REJECTED:
                 BookingState bookingState = convertBookingSearchStateToBookingState(bookingSearchState);
                 bookings =
-                        bookingRepository.findAllByBooker_IdAndStatusIsOrderByStartDesc(userId, bookingState);
+                        bookingRepository.findAllByBooker_IdAndStatusIs(userId, bookingState, pageRequest);
                 break;
             case FUTURE:
                 bookings =
-                        bookingRepository.findAllByBooker_IdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now());
+                        bookingRepository.findAllByBooker_IdAndStartAfter(userId, LocalDateTime.now(), pageRequest);
                 break;
             case PAST:
                 bookings =
-                        bookingRepository.findAllByBooker_IdAndEndBeforeOrderByStartDesc(userId, LocalDateTime.now());
+                        bookingRepository.findAllByBooker_IdAndEndBefore(userId, LocalDateTime.now(), pageRequest);
                 break;
             case CURRENT:
-                bookings = bookingRepository.findCurrentBookingFromBooker(userId, LocalDateTime.now());
+                bookings = bookingRepository.findCurrentBookingFromBooker(userId, LocalDateTime.now(), pageRequest);
                 break;
         }
         return bookings;
     }
+
 
     private BookingState convertBookingSearchStateToBookingState(BookingSearchState bookingSearchState) {
         BookingState bookingState = null;

@@ -31,4 +31,8 @@ public class Item {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "request_id", nullable = true)
+    private User request;
 }

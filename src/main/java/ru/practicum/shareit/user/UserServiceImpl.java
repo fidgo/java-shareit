@@ -40,7 +40,6 @@ public class UserServiceImpl implements UserService {
 
     }
 
-
     @Override
     @Transactional
     public List<UserDto> getAll() {

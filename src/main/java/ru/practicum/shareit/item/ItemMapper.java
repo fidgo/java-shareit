@@ -14,14 +14,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ItemMapper {
-    public static Item toItem(User owner, ItemDto itemDto) {
+    public static Item toItem(User owner, ItemDto itemDto, User requestor) {
 
         return new Item(
-                0L,
+                itemDto.getId(),
                 itemDto.getName(),
                 itemDto.getDescription(),
                 true,
-                owner
+                owner,
+                requestor
         );
     }
 
@@ -30,7 +31,8 @@ public class ItemMapper {
                 item.getId(),
                 item.getName(),
                 item.getDescription(),
-                item.getAvailable()
+                item.getAvailable(),
+                item.getRequest() != null ? item.getRequest().getId() : null
         );
     }
 

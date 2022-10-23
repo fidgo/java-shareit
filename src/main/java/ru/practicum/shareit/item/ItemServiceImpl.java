@@ -1,6 +1,8 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
@@ -22,6 +24,7 @@ import ru.practicum.shareit.user.interfaces.UserRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +41,14 @@ public class ItemServiceImpl implements ItemService {
         User owner = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElemException("Нет такого пользователя"));
 
-        Item item = ItemMapper.toItem(owner, itemDto);
+        Long requestId = itemDto.getRequestId();
+        User requestor = null;
+        if (itemDto.getRequestId() != null) {
+            requestor = userRepository.findById(requestId)
+                    .orElseThrow(() -> new NoSuchElemException("Нет такого пользователя"));
+        }
+
+        Item item = ItemMapper.toItem(owner, itemDto, requestor);
         return ItemMapper.toItemDto(itemRepository.save(item));
     }
 
@@ -75,12 +85,13 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public List<ItemInfoDto> getAllItemsByUserID(long userId) {
+    public List<ItemInfoDto> getAllItemsByUserID(long userId, PageRequest pageRequest) {
 
         User owner = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElemException("Нет такого пользователя"));
 
-        List<Item> itemsByUserId = itemRepository.findAllByOwner(owner);
+        Page<Item> itemPage = itemRepository.findAllByOwner(owner, pageRequest);
+        List<Item> itemsByUserId = itemPage.stream().collect(Collectors.toList());
         List<ItemInfoDto> itemsInfoDtos = evaluateItemsInfoDtos(userId, itemsByUserId);
 
         return itemsInfoDtos;
@@ -89,12 +100,13 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public List<ItemDto> search(String text) {
+    public List<ItemDto> search(String text, PageRequest pageRequest) {
 
         if ("".equals(text)) {
             return new ArrayList<>();
         }
-        List<Item> items = itemRepository.search(text);
+        Page<Item> itemPage = itemRepository.search(text, pageRequest);
+        List<Item> items = itemPage.stream().collect(Collectors.toList());
         return ItemMapper.toItemsDto(items);
 
     }
@@ -135,7 +147,8 @@ public class ItemServiceImpl implements ItemService {
                 itemDto.getName() != null ? itemDto.getName() : item.getName(),
                 itemDto.getDescription() != null ? itemDto.getDescription() : item.getDescription(),
                 itemDto.getAvailable() != null ? itemDto.getAvailable() : item.getAvailable(),
-                item.getOwner()
+                item.getOwner(),
+                item.getRequest()
         );
     }
 }
