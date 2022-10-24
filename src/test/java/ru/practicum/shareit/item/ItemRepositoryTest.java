@@ -7,13 +7,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.annotation.DirtiesContext;
 import ru.practicum.shareit.PageRequestFrom;
 import ru.practicum.shareit.item.interfaces.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.interfaces.ItemRequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.interfaces.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,12 +24,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DataJpaTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ItemRepositoryTest {
     @Autowired
     private ItemRepository itemRepository;
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ItemRequestRepository itemRequestRepository;
 
     private User owner;
 
@@ -37,12 +44,15 @@ public class ItemRepositoryTest {
 
     @BeforeEach
     void beforeEach() {
-        item1Request = new ItemRequest(1L, "need a car", requestor, null);
         owner = new User(1L, "user1", "user1@mail.ru");
         requestor = new User(2L, "user2", "user2@mail.ru");
         owner = userRepository.save(owner);
         requestor = userRepository.save(requestor);
-        item1 = new Item(1L, "car", "very fast", true, owner, requestor);
+        item1Request = new ItemRequest(1L, "need a car", requestor, LocalDateTime.now());
+
+        item1Request.setRequestor(requestor);
+        item1Request = itemRequestRepository.save(item1Request);
+        item1 = new Item(1L, "car", "very fast", true, owner, item1Request);
         item1 = itemRepository.save(item1);
     }
 
@@ -92,7 +102,7 @@ public class ItemRepositoryTest {
 
     @Test
     void findAllByRequest_Id() {
-        List<Item> itemsFrom = itemRepository.findAllByRequest_Id(requestor.getId());
+        List<Item> itemsFrom = itemRepository.findAllByRequest_Id(item1Request.getId());
         assertNotNull(itemsFrom);
         assertEquals(1, itemsFrom.size());
         Item iFrom = itemsFrom.get(0);
@@ -106,6 +116,7 @@ public class ItemRepositoryTest {
 
     @AfterEach
     void afterEach() {
+        itemRequestRepository.deleteAll();
         itemRepository.deleteAll();
         userRepository.deleteAll();
     }

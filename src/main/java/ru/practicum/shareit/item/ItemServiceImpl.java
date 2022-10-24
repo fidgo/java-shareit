@@ -18,6 +18,8 @@ import ru.practicum.shareit.item.interfaces.ItemRepository;
 import ru.practicum.shareit.item.interfaces.ItemService;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.interfaces.ItemRequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.interfaces.UserRepository;
 
@@ -34,6 +36,8 @@ public class ItemServiceImpl implements ItemService {
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
 
+    private final ItemRequestRepository itemRequestRepository;
+
     @Override
     @Transactional
     public ItemDto create(long userId, ItemDto itemDto) {
@@ -42,10 +46,10 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new NoSuchElemException("Нет такого пользователя"));
 
         Long requestId = itemDto.getRequestId();
-        User requestor = null;
+        ItemRequest requestor = null;
         if (itemDto.getRequestId() != null) {
-            requestor = userRepository.findById(requestId)
-                    .orElseThrow(() -> new NoSuchElemException("Нет такого пользователя"));
+            requestor = itemRequestRepository.findById(requestId)
+                    .orElseThrow(() -> new NoSuchElemException("Нет такого запроса"));
         }
 
         Item item = ItemMapper.toItem(owner, itemDto, requestor);

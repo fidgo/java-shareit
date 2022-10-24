@@ -8,13 +8,14 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemInfoDto;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.User;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ItemMapper {
-    public static Item toItem(User owner, ItemDto itemDto, User requestor) {
+    public static Item toItem(User owner, ItemDto itemDto, ItemRequest requestor) {
 
         return new Item(
                 itemDto.getId(),

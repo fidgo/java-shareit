@@ -126,7 +126,7 @@ public class ItemRequestServiceTest {
 
     @Test
     void itemRequestMapperItemRequestResponsesDto() {
-        item1.setRequest(user2);
+        item1.setRequest(item1Request);
         ItemRequestResponsesDto.ItemReqResponses expResponse = new ItemRequestResponsesDto.ItemReqResponses();
         expResponse.setId(item1.getId());
         expResponse.setName(item1.getName());

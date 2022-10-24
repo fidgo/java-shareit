@@ -7,10 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.annotation.DirtiesContext;
 import ru.practicum.shareit.PageRequestFrom;
 import ru.practicum.shareit.booking.interfaces.BookingRepository;
 import ru.practicum.shareit.item.interfaces.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.interfaces.ItemRequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.interfaces.UserRepository;
 
@@ -22,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DataJpaTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class BookingRepositoryTest {
     @Autowired
     private BookingRepository bookingRepository;
@@ -32,6 +36,9 @@ public class BookingRepositoryTest {
     @Autowired
     private ItemRepository itemRepository;
 
+    @Autowired
+    private ItemRequestRepository itemRequestRepository;
+
     private LocalDateTime start1;
     private LocalDateTime end1;
     private User owner;
@@ -39,6 +46,8 @@ public class BookingRepositoryTest {
     private Item item1;
 
     private Booking booking1;
+
+    private ItemRequest item1Request;
 
     @BeforeEach
     void beforeEach() {
@@ -48,7 +57,9 @@ public class BookingRepositoryTest {
         booker = new User(2L, "user2", "user2@mail.ru");
         owner = userRepository.save(owner);
         booker = userRepository.save(booker);
-        item1 = new Item(1L, "car", "very fast", true, owner, booker);
+        item1Request = new ItemRequest(1L, "descr", booker, LocalDateTime.now());
+        item1Request = itemRequestRepository.save(item1Request);
+        item1 = new Item(1L, "car", "very fast", true, owner, item1Request);
         item1 = itemRepository.save(item1);
         booking1 = new Booking(1L, start1, end1, item1, booker, BookingState.WAITING);
         booking1 = bookingRepository.save(booking1);
@@ -347,5 +358,6 @@ public class BookingRepositoryTest {
         userRepository.deleteAll();
         itemRepository.deleteAll();
         bookingRepository.deleteAll();
+        itemRequestRepository.deleteAll();
     }
 }

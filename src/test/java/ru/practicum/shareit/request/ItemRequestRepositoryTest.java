@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.annotation.DirtiesContext;
 import ru.practicum.shareit.PageRequestFrom;
 import ru.practicum.shareit.item.interfaces.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
@@ -21,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DataJpaTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ItemRequestRepositoryTest {
     @Autowired
     private ItemRequestRepository itemRequestRepository;
@@ -45,13 +47,13 @@ public class ItemRequestRepositoryTest {
         requestor = new User(2L, "user2", "user2@mail.ru");
         owner = userRepository.save(owner);
         requestor = userRepository.save(requestor);
-        item1 = new Item(1L, "car", "very fast", true, owner, requestor);
-        item1 = itemRepository.save(item1);
-        item2 = new Item(2L, "ball", "round", true, owner, requestor);
         item1Request = new ItemRequest(1L, "need a car", requestor, LocalDateTime.now());
         item1Request = itemRequestRepository.save(item1Request);
         item2Request = new ItemRequest(2L, "need a ball", requestor, LocalDateTime.now());
         item2Request = itemRequestRepository.save(item2Request);
+        item1 = new Item(1L, "car", "very fast", true, owner, item1Request);
+        item1 = itemRepository.save(item1);
+        item2 = new Item(2L, "ball", "round", true, owner, item2Request);
     }
 
     @Test

@@ -21,6 +21,8 @@ import ru.practicum.shareit.item.interfaces.ItemRepository;
 import ru.practicum.shareit.item.interfaces.ItemService;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.interfaces.ItemRequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.interfaces.UserRepository;
 
@@ -42,13 +44,16 @@ public class ItemServiceTest {
     private BookingRepository bookingRepository;
     private CommentRepository commentRepository;
 
+    private ItemRequestRepository itemRequestRepository;
+
     private User user1;
     private Item item1;
     private ItemDto item1Dto;
     private ItemInfoDto item1InfoDto;
     private Booking booking1;
-
     private Comment comment1;
+
+    private ItemRequest item1Request;
 
     @BeforeEach
     void beforeEach() {
@@ -56,7 +61,9 @@ public class ItemServiceTest {
         itemRepository = mock(ItemRepository.class);
         bookingRepository = mock(BookingRepository.class);
         commentRepository = mock(CommentRepository.class);
-        itemService = new ItemServiceImpl(userRepository, itemRepository, bookingRepository, commentRepository);
+        itemRequestRepository = mock(ItemRequestRepository.class);
+        itemService = new ItemServiceImpl(userRepository, itemRepository, bookingRepository, commentRepository,
+                itemRequestRepository);
 
         user1 = new User(1L, "user1", "user1@mail.ru");
         item1 = new Item(1L, "car", "very fast", true, user1, null);
@@ -65,6 +72,7 @@ public class ItemServiceTest {
                 null, null, new ArrayList<>());
         booking1 = new Booking(1L, null, null, item1, user1, BookingState.WAITING);
         comment1 = new Comment(1L, "nice thing!", user1, item1, null);
+        item1Request = new ItemRequest(1L, "request1", null, LocalDateTime.now());
     }
 
     @Test
@@ -89,35 +97,36 @@ public class ItemServiceTest {
     void createFindRequest() {
         ItemDto item2Dto = new ItemDto(3L, "ball", "round", true, 5L);
         User user2 = new User(2L, "user2", "user2@mail.ru");
+        item1Request.setRequestor(user2);
         Item item2 = new Item(3L, "car", "very fast",
-                true, user1, user2);
+                true, user1, item1Request);
 
         when(userRepository.findById(eq(1L))).thenReturn(Optional.of(user1));
-        when(userRepository.findById(eq(5L))).thenReturn(Optional.of(user2));
+        when(itemRequestRepository.findById(eq(5L))).thenReturn(Optional.of(item1Request));
         when(itemRepository.save(any())).thenReturn(item2);
 
         ItemDto itemDto = itemService.create(1L, item2Dto);
         assertNotNull(itemDto);
-        verify(userRepository, Mockito.times(2)).findById(anyLong());
+        verify(userRepository, Mockito.times(1)).findById(anyLong());
+        verify(itemRequestRepository, Mockito.times(1)).findById(anyLong());
         verify(itemRepository, Mockito.times(1)).save(any(Item.class));
 
-        Item itemFrom = ItemMapper.toItem(user1, itemDto, user2);
+        Item itemFrom = ItemMapper.toItem(user1, itemDto, item1Request);
         assertEquals(itemFrom.getId(), item2.getId());
         assertEquals(itemFrom.getName(), item2.getName());
         assertEquals(itemFrom.getDescription(), item2.getDescription());
         assertEquals(itemFrom.getAvailable(), item2.getAvailable());
         assertEquals(itemFrom.getOwner().getId(), item2.getOwner().getId());
-        assertEquals(itemFrom.getRequest().getId(), user2.getId());
-        assertEquals(itemFrom.getRequest().getName(), user2.getName());
-        assertEquals(itemFrom.getRequest().getEmail(), user2.getEmail());
+        assertEquals(itemFrom.getRequest().getRequestor().getId(), user2.getId());
     }
 
     @Test
     void createFindRequestNoSuchEx() {
         ItemDto item2Dto = new ItemDto(3L, "ball", "round", true, 5L);
         User user2 = new User(2L, "user2", "user2@mail.ru");
+        item1Request.setRequestor(user2);
         Item item2 = new Item(3L, "car", "very fast",
-                true, user1, user2);
+                true, user1, item1Request);
 
         when(userRepository.findById(eq(1L))).thenReturn(Optional.of(user1));
         when(userRepository.findById(eq(5L))).thenThrow(new NoSuchElemException("Нет такого пользователя"));//thenReturn(Optional.of(user2));
@@ -126,7 +135,7 @@ public class ItemServiceTest {
         NoSuchElemException ex = assertThrows(NoSuchElemException.class, () -> {
             itemService.create(1L, item2Dto);
         });
-        assertEquals("Нет такого пользователя", ex.getMessage());
+        assertEquals("Нет такого запроса", ex.getMessage());
     }
 
     @Test
