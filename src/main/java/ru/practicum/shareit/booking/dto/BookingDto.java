@@ -35,6 +35,7 @@ public class BookingDto {
     @Getter
     @Setter
     @AllArgsConstructor
+    @NoArgsConstructor
     @ToString
     public static class ItemBookingDto {
         private Long id;
@@ -46,6 +47,7 @@ public class BookingDto {
     @Getter
     @Setter
     @AllArgsConstructor
+    @NoArgsConstructor
     @ToString
     public static class UserBookingDto {
         private Long id;

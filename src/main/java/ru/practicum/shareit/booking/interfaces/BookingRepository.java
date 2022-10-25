@@ -1,5 +1,7 @@
 package ru.practicum.shareit.booking.interfaces;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -19,23 +21,25 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findAllByBooker_IdOrderByStartDesc(long bookerId);
 
-    List<Booking> findAllByItem_Owner_IdOrderByStartDesc(long ownerId);
+    Page<Booking> findAllByBooker_Id(long bookerId, PageRequest pageRequest);
 
-    List<Booking> findAllByBooker_IdAndStatusIsOrderByStartDesc(long bookerId, BookingState status);
+    Page<Booking> findAllByItem_Owner_Id(long ownerId, PageRequest pageRequest);
 
-    List<Booking> findAllByItem_Owner_IdAndStatusIsOrderByStartDesc(long ownerId, BookingState status);
+    Page<Booking> findAllByBooker_IdAndStatusIs(long bookerId, BookingState status, PageRequest pageRequest);
 
-    List<Booking> findAllByBooker_IdAndStartAfterOrderByStartDesc(long bookerId, LocalDateTime after);
+    Page<Booking> findAllByItem_Owner_IdAndStatusIs(long ownerId, BookingState status, PageRequest pageRequest);
 
-    List<Booking> findAllByItem_Owner_IdAndStartAfterOrderByStartDesc(long ownerId, LocalDateTime after);
+    Page<Booking> findAllByBooker_IdAndStartAfter(long bookerId, LocalDateTime after, PageRequest pageRequest);
 
-    List<Booking> findAllByBooker_IdAndEndBeforeOrderByStartDesc(long bookerId, LocalDateTime before);
+    Page<Booking> findAllByItem_Owner_IdAndStartAfter(long ownerId, LocalDateTime after, PageRequest pageRequest);
 
-    List<Booking> findAllByItem_Owner_IdAndEndBeforeOrderByStartDesc(long ownerId, LocalDateTime before);
+    Page<Booking> findAllByBooker_IdAndEndBefore(long bookerId, LocalDateTime before, PageRequest pageRequest);
+
+    Page<Booking> findAllByItem_Owner_IdAndEndBefore(long ownerId, LocalDateTime before, PageRequest pageRequest);
 
     @Query("select b from Booking b where b.booker.id = ?1 and b.start < ?2 and b.end > ?2 ")
-    List<Booking> findCurrentBookingFromBooker(long bookerId, LocalDateTime now);
+    Page<Booking> findCurrentBookingFromBooker(long bookerId, LocalDateTime now, PageRequest pageRequest);
 
     @Query("select b from Booking b where b.item.owner.id = ?1 and b.start < ?2 and b.end > ?2 ")
-    List<Booking> findCurrentBookingFromOwner(long ownerId, LocalDateTime now);
+    Page<Booking> findCurrentBookingFromOwner(long ownerId, LocalDateTime now, PageRequest pageRequest);
 }
